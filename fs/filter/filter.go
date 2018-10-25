@@ -173,7 +173,7 @@ func NewFilter(opt *Opt) (f *Filter, err error) {
 	}
 
 	if addImplicitExclude && foundExcludeRule {
-		fs.Infof(nil, "Using --filter is recommended instead of both --include and --exclude as the order they are parsed in is indeterminate")
+		fs.Errorf(nil, "Using --filter is recommended instead of both --include and --exclude as the order they are parsed in is indeterminate")
 	}
 
 	for _, rule := range f.Opt.FilterRule {
@@ -495,4 +495,32 @@ func (f *Filter) DumpFilters() string {
 		rules = append(rules, dirRule.String())
 	}
 	return strings.Join(rules, "\n")
+}
+
+// HaveFilesFrom returns true if --files-from has been supplied
+func (f *Filter) HaveFilesFrom() bool {
+	return f.files != nil
+}
+
+var errFilesFromNotSet = errors.New("--files-from not set so can't use Filter.ListR")
+
+// MakeListR makes function to return all the files set using --files-from
+func (f *Filter) MakeListR(NewObject func(remote string) (fs.Object, error)) fs.ListRFn {
+	return func(dir string, callback fs.ListRCallback) error {
+		if !f.HaveFilesFrom() {
+			return errFilesFromNotSet
+		}
+		var entries fs.DirEntries
+		for remote := range f.files {
+			entry, err := NewObject(remote)
+			if err == fs.ErrorObjectNotFound {
+				// Skip files that are not found
+			} else if err != nil {
+				return err
+			} else {
+				entries = append(entries, entry)
+			}
+		}
+		return callback(entries)
+	}
 }

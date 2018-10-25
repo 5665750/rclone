@@ -79,6 +79,61 @@ func TestCopyWithDepth(t *testing.T) {
 	fstest.CheckItems(t, r.Fremote, file2)
 }
 
+// Test copy with files from
+func TestCopyWithFilesFrom(t *testing.T) {
+	r := fstest.NewRun(t)
+	defer r.Finalise()
+	file1 := r.WriteFile("potato2", "hello world", t1)
+	file2 := r.WriteFile("hello world2", "hello world2", t2)
+
+	// Set the --files-from equivalent
+	f, err := filter.NewFilter(nil)
+	require.NoError(t, err)
+	require.NoError(t, f.AddFile("potato2"))
+	require.NoError(t, f.AddFile("notfound"))
+
+	// Monkey patch the active filter
+	oldFilter := filter.Active
+	filter.Active = f
+	unpatch := func() {
+		filter.Active = oldFilter
+	}
+	defer unpatch()
+
+	err = CopyDir(r.Fremote, r.Flocal)
+	require.NoError(t, err)
+	unpatch()
+
+	fstest.CheckItems(t, r.Flocal, file1, file2)
+	fstest.CheckItems(t, r.Fremote, file1)
+}
+
+// Test copy empty directories
+func TestCopyEmptyDirectories(t *testing.T) {
+	r := fstest.NewRun(t)
+	defer r.Finalise()
+	file1 := r.WriteFile("sub dir/hello world", "hello world", t1)
+	err := operations.Mkdir(r.Flocal, "sub dir2")
+	require.NoError(t, err)
+	r.Mkdir(r.Fremote)
+
+	err = CopyDir(r.Fremote, r.Flocal)
+	require.NoError(t, err)
+
+	fstest.CheckListingWithPrecision(
+		t,
+		r.Fremote,
+		[]fstest.Item{
+			file1,
+		},
+		[]string{
+			"sub dir",
+			"sub dir2",
+		},
+		fs.GetModifyWindow(r.Fremote),
+	)
+}
+
 // Test a server side copy if possible, or the backup path if not
 func TestServerSideCopy(t *testing.T) {
 	r := fstest.NewRun(t)
@@ -126,7 +181,8 @@ func TestCopyRedownload(t *testing.T) {
 	err := CopyDir(r.Flocal, r.Fremote)
 	require.NoError(t, err)
 
-	fstest.CheckItems(t, r.Flocal, file1)
+	// Test with combined precision of local and remote as we copied it there and back
+	fstest.CheckListingWithPrecision(t, r.Flocal, []fstest.Item{file1}, nil, fs.GetModifyWindow(r.Flocal, r.Fremote))
 }
 
 // Create a file and sync it. Change the last modified date and resync.
@@ -306,7 +362,7 @@ func TestSyncIgnoreErrors(t *testing.T) {
 			"a",
 			"c",
 		},
-		fs.Config.ModifyWindow,
+		fs.GetModifyWindow(r.Fremote),
 	)
 	fstest.CheckListingWithPrecision(
 		t,
@@ -320,7 +376,7 @@ func TestSyncIgnoreErrors(t *testing.T) {
 			"c",
 			"d",
 		},
-		fs.Config.ModifyWindow,
+		fs.GetModifyWindow(r.Fremote),
 	)
 
 	accounting.Stats.ResetCounters()
@@ -338,7 +394,7 @@ func TestSyncIgnoreErrors(t *testing.T) {
 			"a",
 			"c",
 		},
-		fs.Config.ModifyWindow,
+		fs.GetModifyWindow(r.Fremote),
 	)
 	fstest.CheckListingWithPrecision(
 		t,
@@ -351,7 +407,7 @@ func TestSyncIgnoreErrors(t *testing.T) {
 			"a",
 			"c",
 		},
-		fs.Config.ModifyWindow,
+		fs.GetModifyWindow(r.Fremote),
 	)
 }
 
@@ -413,11 +469,11 @@ func TestSyncAfterChangingModtimeOnlyWithNoUpdateModTime(t *testing.T) {
 }
 
 func TestSyncDoesntUpdateModtime(t *testing.T) {
-	if fs.Config.ModifyWindow == fs.ModTimeNotSupported {
-		t.Skip("Can't run this test on fs which doesn't support mod time")
-	}
 	r := fstest.NewRun(t)
 	defer r.Finalise()
+	if fs.GetModifyWindow(r.Fremote) == fs.ModTimeNotSupported {
+		t.Skip("Can't run this test on fs which doesn't support mod time")
+	}
 
 	file1 := r.WriteFile("foo", "foo", t2)
 	file2 := r.WriteObject("foo", "bar", t1)
@@ -546,7 +602,7 @@ func TestSyncAfterRemovingAFileAndAddingAFileSubDir(t *testing.T) {
 			"a",
 			"c",
 		},
-		fs.Config.ModifyWindow,
+		fs.GetModifyWindow(r.Fremote),
 	)
 	fstest.CheckListingWithPrecision(
 		t,
@@ -561,7 +617,7 @@ func TestSyncAfterRemovingAFileAndAddingAFileSubDir(t *testing.T) {
 			"d",
 			"d/e",
 		},
-		fs.Config.ModifyWindow,
+		fs.GetModifyWindow(r.Fremote),
 	)
 
 	accounting.Stats.ResetCounters()
@@ -579,7 +635,7 @@ func TestSyncAfterRemovingAFileAndAddingAFileSubDir(t *testing.T) {
 			"a",
 			"c",
 		},
-		fs.Config.ModifyWindow,
+		fs.GetModifyWindow(r.Fremote),
 	)
 	fstest.CheckListingWithPrecision(
 		t,
@@ -592,7 +648,7 @@ func TestSyncAfterRemovingAFileAndAddingAFileSubDir(t *testing.T) {
 			"a",
 			"c",
 		},
-		fs.Config.ModifyWindow,
+		fs.GetModifyWindow(r.Fremote),
 	)
 }
 
@@ -616,7 +672,7 @@ func TestSyncAfterRemovingAFileAndAddingAFileSubDirWithErrors(t *testing.T) {
 			"a",
 			"c",
 		},
-		fs.Config.ModifyWindow,
+		fs.GetModifyWindow(r.Fremote),
 	)
 	fstest.CheckListingWithPrecision(
 		t,
@@ -630,7 +686,7 @@ func TestSyncAfterRemovingAFileAndAddingAFileSubDirWithErrors(t *testing.T) {
 			"c",
 			"d",
 		},
-		fs.Config.ModifyWindow,
+		fs.GetModifyWindow(r.Fremote),
 	)
 
 	accounting.Stats.ResetCounters()
@@ -649,7 +705,7 @@ func TestSyncAfterRemovingAFileAndAddingAFileSubDirWithErrors(t *testing.T) {
 			"a",
 			"c",
 		},
-		fs.Config.ModifyWindow,
+		fs.GetModifyWindow(r.Fremote),
 	)
 	fstest.CheckListingWithPrecision(
 		t,
@@ -665,7 +721,7 @@ func TestSyncAfterRemovingAFileAndAddingAFileSubDirWithErrors(t *testing.T) {
 			"c",
 			"d",
 		},
-		fs.Config.ModifyWindow,
+		fs.GetModifyWindow(r.Fremote),
 	)
 }
 
@@ -779,11 +835,11 @@ func TestSyncWithExcludeAndDeleteExcluded(t *testing.T) {
 
 // Test with UpdateOlder set
 func TestSyncWithUpdateOlder(t *testing.T) {
-	if fs.Config.ModifyWindow == fs.ModTimeNotSupported {
-		t.Skip("Can't run this test on fs which doesn't support mod time")
-	}
 	r := fstest.NewRun(t)
 	defer r.Finalise()
+	if fs.GetModifyWindow(r.Fremote) == fs.ModTimeNotSupported {
+		t.Skip("Can't run this test on fs which doesn't support mod time")
+	}
 	t2plus := t2.Add(time.Second / 2)
 	t2minus := t2.Add(time.Second / 2)
 	oneF := r.WriteFile("one", "one", t1)
@@ -887,7 +943,7 @@ func testServerSideMove(t *testing.T, r *fstest.Run, withFilter, testDeleteEmpty
 	}
 
 	if testDeleteEmptyDirs {
-		fstest.CheckListingWithPrecision(t, r.Fremote, nil, []string{}, fs.Config.ModifyWindow)
+		fstest.CheckListingWithPrecision(t, r.Fremote, nil, []string{}, fs.GetModifyWindow(r.Fremote))
 	}
 
 	fstest.CheckItems(t, FremoteMove, file2, file1, file3u)
@@ -916,8 +972,54 @@ func testServerSideMove(t *testing.T, r *fstest.Run, withFilter, testDeleteEmpty
 	}
 
 	if testDeleteEmptyDirs {
-		fstest.CheckListingWithPrecision(t, FremoteMove, nil, []string{}, fs.Config.ModifyWindow)
+		fstest.CheckListingWithPrecision(t, FremoteMove, nil, []string{}, fs.GetModifyWindow(r.Fremote))
 	}
+}
+
+// Test move
+func TestMoveWithDeleteEmptySrcDirs(t *testing.T) {
+	r := fstest.NewRun(t)
+	defer r.Finalise()
+	file1 := r.WriteFile("sub dir/hello world", "hello world", t1)
+	file2 := r.WriteFile("nested/sub dir/file", "nested", t1)
+	r.Mkdir(r.Fremote)
+
+	// run move with --delete-empty-src-dirs
+	err := MoveDir(r.Fremote, r.Flocal, true)
+	require.NoError(t, err)
+
+	fstest.CheckListingWithPrecision(
+		t,
+		r.Flocal,
+		nil,
+		[]string{},
+		fs.GetModifyWindow(r.Flocal),
+	)
+	fstest.CheckItems(t, r.Fremote, file1, file2)
+}
+
+func TestMoveWithoutDeleteEmptySrcDirs(t *testing.T) {
+	r := fstest.NewRun(t)
+	defer r.Finalise()
+	file1 := r.WriteFile("sub dir/hello world", "hello world", t1)
+	file2 := r.WriteFile("nested/sub dir/file", "nested", t1)
+	r.Mkdir(r.Fremote)
+
+	err := MoveDir(r.Fremote, r.Flocal, false)
+	require.NoError(t, err)
+
+	fstest.CheckListingWithPrecision(
+		t,
+		r.Flocal,
+		nil,
+		[]string{
+			"sub dir",
+			"nested",
+			"nested/sub dir",
+		},
+		fs.GetModifyWindow(r.Flocal),
+	)
+	fstest.CheckItems(t, r.Fremote, file1, file2)
 }
 
 // Test a server side move if possible, or the backup path if not

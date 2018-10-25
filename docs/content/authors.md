@@ -164,3 +164,47 @@ Contributors
   * Piotr Oleszczyk <piotr.oleszczyk@gmail.com>
   * Rodrigo <rodarima@gmail.com>
   * NoLooseEnds <NoLooseEnds@users.noreply.github.com>
+  * Jakub Karlicek <jakub@karlicek.me>
+  * John Clayton <john@codemonkeylabs.com>
+  * Kasper Byrdal Nielsen <byrdal76@gmail.com>
+  * Benjamin Joseph Dag <bjdag1234@users.noreply.github.com>
+  * themylogin <themylogin@gmail.com>
+  * Onno Zweers <onno.zweers@surfsara.nl>
+  * Jasper Lievisse Adriaanse <jasper@humppa.nl>
+  * sandeepkru <sandeep.ummadi@gmail.com> <sandeepkru@users.noreply.github.com>
+  * HerrH <atomtigerzoo@users.noreply.github.com>
+  * Andrew <4030760+sparkyman215@users.noreply.github.com>
+  * dan smith <XX1011@gmail.com>
+  * Oleg Kovalov <iamolegkovalov@gmail.com>
+  * Ruben Vandamme <github-com-00ff86@vandamme.email>
+  * Cnly <minecnly@gmail.com>
+  * Andres Alvarez <1671935+kir4h@users.noreply.github.com>
+  * reddi1 <xreddi@gmail.com>
+  * Matt Tucker <matthewtckr@gmail.com>
+  * Sebastian Bünger <buengese@gmail.com>
+  * Martin Polden <mpolden@mpolden.no>
+  * Alex Chen <Cnly@users.noreply.github.com>
+  * Denis <deniskovpen@gmail.com>
+  * bsteiss <35940619+bsteiss@users.noreply.github.com>
+  * Cédric Connes <cedric.connes@gmail.com>
+  * Dr. Tobias Quathamer <toddy15@users.noreply.github.com>
+  * dcpu <42736967+dcpu@users.noreply.github.com>
+  * Sheldon Rupp <me@shel.io>
+  * albertony <12441419+albertony@users.noreply.github.com>
+  * cron410 <cron410@gmail.com>
+  * Anagh Kumar Baranwal <anaghk.dos@gmail.com>
+  * Felix Brucker <felix@felixbrucker.com>
+  * Santiago Rodríguez <scollazo@users.noreply.github.com>
+  * Craig Miskell <craig.miskell@fluxfederation.com>
+  * Antoine GIRARD <sapk@sapk.fr>
+  * Joanna Marek <joanna.marek@u2i.com>
+  * frenos <frenos@users.noreply.github.com>
+  * ssaqua <ssaqua@users.noreply.github.com>
+  * xnaas <me@xnaas.info>
+  * Frantisek Fuka <fuka@fuxoft.cz>
+  * Paul Kohout <pauljkohout@yahoo.com>
+  * dcpu <43330287+dcpu@users.noreply.github.com>
+  * jackyzy823 <jackyzy823@gmail.com>
+  * David Haguenauer <ml@kurokatta.org>
+  * teresy <hi.teresy@gmail.com>
+  * buergi <patbuergi@gmx.de>

@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2
 """
 Make single page versions of the documentation for release and
 conversion into man pages etc.
@@ -35,13 +35,16 @@ docs = [
     "drive.md",
     "http.md",
     "hubic.md",
+    "jottacloud.md",
     "mega.md",
     "azureblob.md",
     "onedrive.md",
+    "opendrive.md",
     "qingstor.md",
     "swift.md",
     "pcloud.md",
     "sftp.md",
+    "union.md",
     "webdav.md",
     "yandex.md",
 
